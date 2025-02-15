@@ -154,12 +154,12 @@ export function tagged_list_to_record(component: TaggedListComponent): Component
     }
     function transform_conditional(cond: TaggedListConditional): Conditional {
         return { tag: head(cond), predicate: transform_expression(head(tail(cond))),
-                 consequent: transform_component(head(tail(tail(cond)))),
-                 alternative: transform_component(head(tail(tail(tail(cond))))) };
+            consequent: transform_component(head(tail(tail(cond)))),
+            alternative: transform_component(head(tail(tail(tail(cond))))) };
     }
     function transform_lambda(lam: TaggedListLambda): Lambda {
         return { tag: "lambda_expression", parameters: map(transform_name, head(tail(lam))),
-                 body: transform_component(head(tail(tail(lam)))) };
+            body: transform_component(head(tail(tail(lam)))) };
     }
     function transform_sequence(seq: TaggedListSequence): Sequence {
         return { tag: "sequence", statements: map(transform_component, head(tail(seq))) };
@@ -172,25 +172,25 @@ export function tagged_list_to_record(component: TaggedListComponent): Component
     }
     function transform_function_declaration(fun: TaggedListFunction): Function {
         return { tag: "function_declaration",
-                 name: transform_name(head(tail(fun))),
-                 parameters: map(transform_name, head(tail(tail(fun)))),
-                 body: transform_component(head(tail(tail(tail(fun))))) };
+            name: transform_name(head(tail(fun))),
+            parameters: map(transform_name, head(tail(tail(fun)))),
+            body: transform_component(head(tail(tail(tail(fun))))) };
     }
     function transform_declaration(decl: TaggedListDeclaration): Declaration {
         return { tag: "constant_declaration", name: transform_name(head(tail(decl))),
-                 initialiser: transform_expression(head(tail(tail(decl)))) };
+            initialiser: transform_expression(head(tail(tail(decl)))) };
     }
     function transform_assignment(assg: TaggedListAssignment): Assignment {
         return { tag: "assignment", name: transform_name(head(tail(assg))),
-                 right_hand_side: transform_expression(head(tail(tail(assg)))) };
+            right_hand_side: transform_expression(head(tail(tail(assg)))) };
     }
 
     function transform_component(component: TaggedListComponent): Component {
         return is_expression(component)
             ? transform_expression(component)
             : is_statement(component)
-            ? transform_statement(component)
-            : error(component, "unknown syntax -- record transformation");
+                ? transform_statement(component)
+                : error(component, "unknown syntax -- record transformation");
     }
 
     function transform_statement(exp: TaggedListStatement): Statement {
@@ -236,33 +236,32 @@ export function tagged_list_to_record(component: TaggedListComponent): Component
 
 export function evaluate(component: Component, env: Environment): Value {
     return is_literal(component)
-           ? literal_value(component)
-           : is_name(component)
-           ? lookup_symbol_value(symbol_of_name(component), env)
-           : is_application(component)
-           ? apply(evaluate(function_expression(component), env),
-                   list_of_values(arg_expressions(component), env))
-           : is_operator_combination(component)
-           ? evaluate(operator_combination_to_application(component),
-                      env)
-           : is_conditional(component)
-           ? eval_conditional(component, env)
-           : is_lambda_expression(component)
-           ? make_function(lambda_parameter_symbols(component),
-                           lambda_body(component), env)
-           : is_sequence(component)
-           ? eval_sequence(sequence_statements(component), env)
-           : is_block(component)
-           ? eval_block(component, env)
-           : is_return_statement(component)
-           ? eval_return_statement(component, env)
-           : is_function_declaration(component)
-           ? evaluate(function_decl_to_constant_decl(component), env)
-           : is_declaration(component)
-           ? eval_declaration(component, env)
-           : is_assignment(component)
-           ? eval_assignment(component, env)
-           : error(component, "unknown syntax -- evaluate");
+        ? literal_value(component)
+        : is_name(component)
+        ? lookup_symbol_value(symbol_of_name(component), env)
+        : is_application(component)
+        ? apply(evaluate(function_expression(component), env),
+                    list_of_values(arg_expressions(component), env))
+        : is_operator_combination(component)
+        ? evaluate(operator_combination_to_application(component), env)
+        : is_conditional(component)
+        ? eval_conditional(component, env)
+        : is_lambda_expression(component)
+        ? make_function(lambda_parameter_symbols(component),
+                                lambda_body(component), env)
+        : is_sequence(component)
+        ? eval_sequence(sequence_statements(component), env)
+        : is_block(component)
+        ? eval_block(component, env)
+        : is_return_statement(component)
+        ? eval_return_statement(component, env)
+        : is_function_declaration(component)
+        ? evaluate(function_decl_to_constant_decl(component), env)
+        : is_declaration(component)
+        ? eval_declaration(component, env)
+        : is_assignment(component)
+        ? eval_assignment(component, env)
+        : error(component, "unknown syntax -- evaluate");
 }
 
 function apply(fun: Value, args: List<Value>) {
@@ -270,13 +269,13 @@ function apply(fun: Value, args: List<Value>) {
         return apply_primitive_function(fun, args);
     } else if (is_compound_function(fun)) {
         const result = evaluate(function_body(fun),
-                                extend_environment(
-                                    function_parameters(fun),
-                                    args,
-                                    function_environment(fun)));
+            extend_environment(
+                function_parameters(fun),
+                args,
+                function_environment(fun)));
         return is_return_value(result)
-               ? return_value_content(result)
-               : undefined;
+            ? return_value_content(result)
+            : undefined;
     } else {
         error(fun, "unknown function type -- apply");
     }
@@ -288,8 +287,8 @@ function list_of_values(exps: List<Expression>, env: Environment) {
 
 function eval_conditional(component: Conditional, env: Environment): Value {
     return is_truthy(evaluate(conditional_predicate(component), env))
-           ? evaluate(conditional_consequent(component), env)
-           : evaluate(conditional_alternative(component), env);
+        ? evaluate(conditional_consequent(component), env)
+        : evaluate(conditional_alternative(component), env);
 }
 
 function eval_sequence(stmts: List<Statement>, env: Environment): Value {
@@ -310,13 +309,13 @@ function eval_sequence(stmts: List<Statement>, env: Environment): Value {
 
 export function scan_out_declarations(component: Component): List<Symbol> {
     return is_sequence(component)
-           ? accumulate(append,
-                        null as List<Symbol>,
-                        map(scan_out_declarations,
-                            sequence_statements(component)))
-           : is_declaration(component)
-           ? list(declaration_symbol(component))
-           : null;
+        ? accumulate(append,
+            null as List<Symbol>,
+            map(scan_out_declarations,
+                sequence_statements(component)))
+        : is_declaration(component)
+        ? list(declaration_symbol(component))
+        : null;
 }
 
 function eval_block(component: Block, env: Environment): Value {
@@ -324,8 +323,8 @@ function eval_block(component: Block, env: Environment): Value {
     const locals = scan_out_declarations(body);
     const unassigneds = list_of_unassigned(locals);
     return evaluate(body, extend_environment(locals,
-                                             unassigneds,
-                                             env));
+        unassigneds,
+        env));
 }
 export function list_of_unassigned(symbols: List<string>): List<string> {
     return map((_:string) => "*unassigned*", symbols);
@@ -333,12 +332,12 @@ export function list_of_unassigned(symbols: List<string>): List<string> {
 
 function eval_return_statement(component: ReturnStatement, env: Environment): Value {
     return make_return_value(evaluate(return_expression(component),
-                                      env));
+        env));
 }
 
 function eval_assignment(component: Assignment, env: Environment): Value {
     const value = evaluate(assignment_value_expression(component),
-                           env);
+        env);
     assign_symbol_value(assignment_symbol(component), value, env);
     return value;
 }
@@ -358,189 +357,187 @@ function is_tagged_list(component: any, the_tag: string): boolean {
 }
 
 function is_literal(component: Component): component is Literal {
-    return is_tagged_list(component, "literal");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "literal";
 }
 function literal_value(component: Literal): Value {
-    return head(tail(component));
+    return component.value;
 }
 
 function make_literal(value: Value): Literal {
-    return pair("literal", pair(value, null));
+    return { tag: "literal", value: value };
 }
 
 function is_name(component: Component): component is Name {
-    return is_tagged_list(component, "name");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "name";
 }
 
 function make_name(symbol: Symbol): Name {
-    return pair("name", pair(symbol, null));
+    return { tag: "name", symbol: symbol };
 }
 
 function symbol_of_name(component: Name): Symbol {
-    return head(tail(component));
+    return component.symbol;
 }
 
 function is_assignment(component: Component): component is Assignment {
-    return is_tagged_list(component, "assignment");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "assignment";
 }
 function assignment_symbol(component: Assignment): Symbol {
-    return head(tail(head(tail(component))));
+    return component.name.symbol;
 }
 function assignment_value_expression(component: Assignment): Expression {
-    return head(tail(tail(component)));
+    return component.right_hand_side;
 }
 
 function is_declaration(component: Component): component is Declaration {
-    return is_tagged_list(component, "constant_declaration") ||
-           is_tagged_list(component, "function_declaration");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === ("constant_declaration" || "function_declaration");
 }
 
 function declaration_symbol(component: Declaration): Symbol {
-    return symbol_of_name(head(tail(component)));
+    return symbol_of_name(component.name);
 }
 function declaration_value_expression(component: Declaration): Expression {
-    return head(tail(tail(component)));
+    return (component as Constant).initialiser;
 }
 
 function make_constant_declaration(name: Name, value_expression: Expression): Constant {
-    return pair("constant_declaration", pair(name, pair(value_expression, null)));
+    return { tag: "constant_declaration", name: name, initialiser: value_expression };
 }
 
 function is_lambda_expression(component: Component): component is Lambda {
-    return is_tagged_list(component, "lambda_expression");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "lambda_expression";
 }
 function lambda_parameter_symbols(component: Lambda): List<Symbol> {
-    return map(symbol_of_name, head(tail(component)));
+    return map(symbol_of_name, component.parameters);
 }
 function lambda_body(component: Lambda): Component {
-    return head(tail(tail(component)));
+    return component.body;
 }
 
 function make_lambda_expression(parameters: List<Name>, body: Component): Lambda {
-    return list("lambda_expression", parameters, body);
+    return { tag: "lambda_expression", parameters: parameters, body: body };
 }
 
 function is_function_declaration(component: Component): component is Function {
-    return is_tagged_list(component, "function_declaration");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "function_declaration";
 }
 function function_declaration_name(component: Function): Name {
-    return head(tail(component));
+    return component.name;
 }
 function function_declaration_parameters(component: Function): List<Name> {
-    return head(tail(tail(component)));
+    return component.parameters;
 }
 function function_declaration_body(component: Function): Component {
-    return head(tail(tail(tail(component))));
+    return component.body;
 }
 function function_decl_to_constant_decl(component: Function): Constant {
     return make_constant_declaration(
-               function_declaration_name(component),
-               make_lambda_expression(
-                   function_declaration_parameters(component),
-                   function_declaration_body(component)));
+        function_declaration_name(component),
+        make_lambda_expression(
+            function_declaration_parameters(component),
+            function_declaration_body(component)));
 }
 
 function is_return_statement(component: Component): component is ReturnStatement {
-   return is_tagged_list(component, "return_statement");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "return_statement";
 }
 function return_expression(component: ReturnStatement): Expression {
-   return head(tail(component));
+    return component.return_expression;
 }
 
 function is_conditional(component: Component): component is Conditional {
-    return is_tagged_list(component, "conditional_expression");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "conditional_expression";
 }
 function conditional_predicate(component: Conditional): Expression {
-   return head(tail(component));
+    return component.predicate;
 }
 function conditional_consequent(component: Conditional): Component {
-    return head(tail(tail(component)));
+    return component.consequent;
 }
 function conditional_alternative(component: Conditional): Component {
-    return head(tail(tail(tail(component))));
+    return component.alternative;
 }
 
 function is_sequence(stmt: Component): stmt is Sequence {
-   return is_tagged_list(stmt, "sequence");
+    return is_pair(stmt) ? false : (stmt as TaggedRecord).tag === "sequence";
 }
 function sequence_statements(stmt: Sequence): List<Statement> {
-   return head(tail(stmt));
+    return stmt.statements;
 }
 function first_statement(stmts: NonEmptyList<Statement>): Statement {
-   return head(stmts);
+    return head(stmts);
 }
 function rest_statements(stmts: NonEmptyList<Statement>): List<Statement> {
-   return tail(stmts);
+    return tail(stmts);
 }
 function is_empty_sequence(stmts: List<Statement>): stmts is null {
-   return is_null(stmts);
+    return is_null(stmts);
 }
 function is_last_statement(stmts: NonEmptyList<Statement>): boolean {
-   return is_null(tail(stmts));
+    return is_null(tail(stmts));
 }
 
 function is_block(component: Component): component is Block {
-    return is_tagged_list(component, "block");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "block";
 }
 function block_body(component: Block): Component {
-    return head(tail(component));
+    return component.body;
 }
 
 function make_block(statement: Statement): Block {
-    return pair("block", pair(statement, null));
+    return { tag: "block", body: statement };
 }
 
 function is_operator_combination(component: Component): component is OperatorCombination {
     return is_unary_operator_combination(component) ||
-           is_binary_operator_combination(component);
+        is_binary_operator_combination(component);
 }
 function is_unary_operator_combination(component: Component): component is Unary {
-    return is_tagged_list(component, "unary_operator_combination");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "unary_operator_combination";
 }
 function is_binary_operator_combination(component: Component): component is Binary {
-    return is_tagged_list(component, "binary_operator_combination");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "binary_operator_combination";
 }
 function operator_symbol(component: OperatorCombination): Operator {
-    return head(tail(component as Unary)); // Unary and Binary have the same structure to this point.
+    return component.operator;
 }
 function first_operand(component: OperatorCombination): Expression {
-    return head(tail(tail(component as Unary))); // Unary and Binary have the same structure to this point.
+    return is_unary_operator_combination(component) ? component.operand : component.left;
 }
 function second_operand(component: Binary): Expression {
-    return head(tail(tail(tail(component))));
+    return (component as Binary).right;
 }
 
 function make_application(function_expression: Expression, argument_expressions: List<Expression>): Application {
-    return pair("application",
-                pair(function_expression, pair(argument_expressions, null)));
+    return { tag: "application", function_expression: function_expression, arguments: argument_expressions };
 }
 
 function operator_combination_to_application(component: OperatorCombination): Application {
     const operator = operator_symbol(component);
     return is_unary_operator_combination(component)
-           ? make_application(make_name(operator),
-                              list(first_operand(component)))
-           : make_application(make_name(operator),
-                              list(first_operand(component),
-                                   second_operand(component)));
+        ? make_application(make_name(operator),
+            list(first_operand(component)))
+        : make_application(make_name(operator),
+            list(first_operand(component),
+                second_operand(component)));
 }
 
 function is_application(component: Component): component is Application {
-   return is_tagged_list(component, "application");
+    return is_pair(component) ? false : (component as TaggedRecord).tag === "application";
 }
 function function_expression(component: Application): Expression {
-   return head(tail(component));
+    return component.function_expression;
 }
 function arg_expressions(component: Application): List<Expression> {
-   return head(tail(tail(component)));
+    return component.arguments;
 }
 
 // functions from SICP JS 4.1.3
 
 function is_truthy(x: any): boolean {
     return is_boolean(x)
-           ? x
-           : error(x, "boolean expected, received");
+        ? x
+        : error(x, "boolean expected, received");
 }
 function is_falsy(x: any): boolean { return ! is_truthy(x); }
 
@@ -589,26 +586,26 @@ function frame_symbols(frame: Frame): List<Symbol> { return head(frame); }
 function frame_values(frame: Frame): List<Value> { return tail(frame); }
 
 export function extend_environment(symbols: List<Symbol>, vals: List<Value>,
-    base_env: Environment): Environment {
+                                   base_env: Environment): Environment {
     return length(symbols) === length(vals)
-           ? pair(make_frame(symbols, vals), base_env)
-           : length(symbols) < length(vals)
-           ? error("too many arguments supplied: " +
-                   stringify(symbols) + ", " +
-                   stringify(vals))
-           : error("too few arguments supplied: " +
-                   stringify(symbols) + ", " +
-                   stringify(vals));
+        ? pair(make_frame(symbols, vals), base_env)
+        : length(symbols) < length(vals)
+        ? error("too many arguments supplied: " +
+            stringify(symbols) + ", " +
+            stringify(vals))
+        : error("too few arguments supplied: " +
+            stringify(symbols) + ", " +
+            stringify(vals));
 }
 
 function lookup_symbol_value(symbol: Symbol, env: Environment): Value {
     function env_loop(env: Environment): Value {
         function scan(symbols: List<Symbol>, vals: List<Value>, enclosing: Environment): Value {
             return is_null(symbols) || is_null(vals)
-                   ? env_loop(enclosing)
-                   : symbol === head(symbols)
-                   ? head(vals)
-                   : scan(tail(symbols), tail(vals), enclosing);
+                ? env_loop(enclosing)
+                : symbol === head(symbols)
+                ? head(vals)
+                : scan(tail(symbols), tail(vals), enclosing);
         }
         if (env === null) {
             error(symbol, "unbound name");
@@ -624,10 +621,10 @@ function assign_symbol_value(symbol: Symbol, val: Value, env: Environment): void
     function env_loop(env: Environment): void {
         function scan(symbols: List<Symbol>, vals: List<Value>, enclosing: Environment): void {
             return is_null(symbols) || is_null(vals)
-                   ? env_loop(enclosing)
-                   : symbol === head(symbols)
-                   ? set_head(vals, val)
-                   : scan(tail(symbols), tail(vals), enclosing);
+                ? env_loop(enclosing)
+                : symbol === head(symbols)
+                ? set_head(vals, val)
+                : scan(tail(symbols), tail(vals), enclosing);
         }
         if (env === null) {
             error(symbol, "unbound name -- assignment");
@@ -651,29 +648,29 @@ type PrimitiveFunction = Pair<string, Pair<any, null>>;
 type PrimitiveConstant = Pair<string, Pair<undefined | number, null>>;
 
 const primitive_functions: List<PrimitiveFunction> =
-  list(
-       pair("head",    pair(head             , null)),
-       pair("tail",    pair(tail             , null)),
-       pair("pair",    pair(pair             , null)),
-       pair("list",    pair(list             , null)),
-       pair("is_null", pair(is_null          , null)),
-       pair("display", pair(display          , null)),
-       pair("error",   pair(error            , null)),
-       pair("math_abs",pair(math_abs         , null)),
-       pair("+",       pair((x: any, y: any) => x + y  , null)),
-       pair("-",       pair((x: any, y: any) => x - y  , null)),
-       pair("-unary",  pair((x: any)         =>   - x  , null)),
-       pair("*",       pair((x: any, y: any) => x * y  , null)),
-       pair("/",       pair((x: any, y: any) => x / y  , null)),
-       pair("%",       pair((x: any, y: any) => x % y  , null)),
-       pair("===",     pair((x: any, y: any) => x === y, null)),
-       pair("!==",     pair((x: any, y: any) => x !== y, null)),
-       pair("<",       pair((x: any, y: any) => x <   y, null)),
-       pair("<=",      pair((x: any, y: any) => x <=  y, null)),
-       pair(">",       pair((x: any, y: any) => x >   y, null)),
-       pair(">=",      pair((x: any, y: any) => x >=  y, null)),
-       pair("!",       pair((x: any)         =>   !   x, null))
-       );
+    list(
+        pair("head",    pair(head             , null)),
+        pair("tail",    pair(tail             , null)),
+        pair("pair",    pair(pair             , null)),
+        pair("list",    pair(list             , null)),
+        pair("is_null", pair(is_null          , null)),
+        pair("display", pair(display          , null)),
+        pair("error",   pair(error            , null)),
+        pair("math_abs",pair(math_abs         , null)),
+        pair("+",       pair((x: any, y: any) => x + y  , null)),
+        pair("-",       pair((x: any, y: any) => x - y  , null)),
+        pair("-unary",  pair((x: any)         =>   - x  , null)),
+        pair("*",       pair((x: any, y: any) => x * y  , null)),
+        pair("/",       pair((x: any, y: any) => x / y  , null)),
+        pair("%",       pair((x: any, y: any) => x % y  , null)),
+        pair("===",     pair((x: any, y: any) => x === y, null)),
+        pair("!==",     pair((x: any, y: any) => x !== y, null)),
+        pair("<",       pair((x: any, y: any) => x <   y, null)),
+        pair("<=",      pair((x: any, y: any) => x <=  y, null)),
+        pair(">",       pair((x: any, y: any) => x >   y, null)),
+        pair(">=",      pair((x: any, y: any) => x >=  y, null)),
+        pair("!",       pair((x: any)         =>   !   x, null))
+    );
 const primitive_function_symbols: List<string> =
     map(head, primitive_functions);
 const primitive_function_objects: List<PrimitiveFunction> =
@@ -681,12 +678,12 @@ const primitive_function_objects: List<PrimitiveFunction> =
         primitive_functions);
 
 const primitive_constants: List<PrimitiveConstant> = list(
-                                 pair("undefined", pair(undefined, null)),
-                                 pair("Infinity",  pair(Infinity, null)),
-                                 pair("math_PI",   pair(math_PI, null)),
-                                 pair("math_E",    pair(math_E, null)),
-                                 pair("NaN",       pair(NaN, null))
-                                );
+    pair("undefined", pair(undefined, null)),
+    pair("Infinity",  pair(Infinity, null)),
+    pair("math_PI",   pair(math_PI, null)),
+    pair("math_E",    pair(math_E, null)),
+    pair("NaN",       pair(NaN, null))
+);
 const primitive_constant_symbols: List<string> =
     map(head, primitive_constants);
 const primitive_constant_values: List<undefined|number> =
@@ -694,31 +691,31 @@ const primitive_constant_values: List<undefined|number> =
 
 function apply_primitive_function(fun: Primitive, arglist: List<Value>): any {
     return apply_in_underlying_javascript(
-               primitive_implementation(fun), arglist);
+        primitive_implementation(fun), arglist);
 }
 
 export function setup_environment(): Environment {
     return extend_environment(append(primitive_function_symbols,
-                                     primitive_constant_symbols),
-                              append(primitive_function_objects,
-                                     primitive_constant_values),
-                              the_empty_environment);
+            primitive_constant_symbols),
+        append(primitive_function_objects,
+            primitive_constant_values),
+        the_empty_environment);
 }
 
 function to_string(object: any): string {
     return is_compound_function(object)
-           ? "<compound-function>"
-           : is_primitive_function(object)
-           ? "<primitive-function>"
-           : is_pair(object)
-           ? "[" + to_string(head(object)) + ", "
-                 + to_string(tail(object)) + "]"
-           : stringify(object);
+        ? "<compound-function>"
+        : is_primitive_function(object)
+        ? "<primitive-function>"
+        : is_pair(object)
+        ? "[" + to_string(head(object)) + ", "
+        + to_string(tail(object)) + "]"
+        : stringify(object);
 }
 
 function user_print(prompt_string: string, object: any): void {
     console.log("----------------------------",
-            prompt_string + "\n" + to_string(object) + "\n");
+        prompt_string + "\n" + to_string(object) + "\n");
 }
 
 function user_read(prompt_string: string): string | null {
@@ -734,18 +731,18 @@ export function driver_loop(env: Environment, history: string): void {
     if (is_null(input)) {
         console.log(history + "\n--- session end ---\n");
     } else {
-        const program = parse(input);   // comment this line and uncomment next
-        // const program = tagged_list_to_record(parse(input));
+        // const program = parse(input);   // comment this line and uncomment next
+        const program = tagged_list_to_record(parse(input));
         const locals = scan_out_declarations(program);
         const unassigneds = list_of_unassigned(locals);
         const program_env = extend_environment(
-                                locals, unassigneds, env);
+            locals, unassigneds, env);
         const output = evaluate(program, program_env);
         const new_history = history +
-              input_prompt +
-              input +
-              output_prompt +
-              to_string(output);
+            input_prompt +
+            input +
+            output_prompt +
+            to_string(output);
         return driver_loop(program_env, new_history);
     }
 }
